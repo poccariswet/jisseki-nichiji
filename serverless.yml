@@ -1,0 +1,40 @@
+service: jisseki-nichiji
+
+provider:
+  name: aws
+  runtime: python3.6
+  timeout: 300
+  stage: dev
+  region: ap-northeast-1
+  environment:
+    START_DAY: "20161115"
+    END_DAY:   "20161118"
+
+#plugins:
+#  - serverless-python-requirements
+custom:
+  profiles:
+    dev: sls
+  otherfile:
+    environment:
+      dev: ${file(./env/dev/dev.yml)}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - s3:*
+      Resource: "arn:aws:s3:::*"
+
+
+functions:
+  jissekibatch:
+    handler: handler.jissekibatch
+    environment:
+      REDSHIFT_DB: ${self:custom.otherfile.environment.${self:provider.stage}.REDSHIFT_DB}
+      REDSHIFT_HOST: ${self:custom.otherfile.environment.${self:provider.stage}.REDSHIFT_HOST}
+      REDSHIFT_PORT: ${self:custom.otherfile.environment.${self:provider.stage}.REDSHIFT_PORT}
+      REDSHIFT_USER: ${self:custom.otherfile.environment.${self:provider.stage}.REDSHIFT_USER}
+      REDSHIFT_PASS: ${self:custom.otherfile.environment.${self:provider.stage}.REDSHIFT_PASS}
+
+    events:
+      - schedule: rate(10 minutes)
