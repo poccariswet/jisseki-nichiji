@@ -24,7 +24,7 @@ def cleansing_format_data(date):
     colss_li.remove(7)
 
     response = s3client.list_objects(
-        Bucket='ld-rawdata-2',
+        Bucket='ld-rawdata',
         Prefix= 'TR_JISSEKI/' + date + 'XXXXXX/'
     )
 
