@@ -79,7 +79,8 @@ def cleansing_format_data(date):
                             user = user,
                             password = password)
 
-    pr.connect_to_s3(
+    pr.connect_to_s3(aws_access_key_id = os.getenv('ACCESS_KEY_ID'),
+                    aws_secret_access_key = os.getenv('SECRET_ACCESS_KEY'),
                     bucket = 'nichiji-tmp'
                     )
 
@@ -87,8 +88,7 @@ def cleansing_format_data(date):
                             redshift_table_name = 'jisseki_nichiji',
                             append = True)
 
-def jissekibatch(event, context):
-
+if __name__ == '__main__':
     start_day = os.environ['START_DAY']
     end_day = os.environ['END_DAY']
 
@@ -118,26 +118,20 @@ def jissekibatch(event, context):
 
         dates.append(y+m+d)
 
-    obj = s3.Object(BUCKET_NAME, OBJECT_KEY_NAME)
-    key = obj.get()['Body'].read().decode('utf-8')
-    tmp_dates = key.split('\n')
-    tmp_dates = tmp_dates[:-1]
+    while(1):
+        obj = s3.Object(BUCKET_NAME, OBJECT_KEY_NAME)
+        key = obj.get()['Body'].read().decode('utf-8')
+        tmp_dates = key.split('\n')
+        tmp_dates = tmp_dates[:-1]
+        if len(dates) == len(tmp_dates):
+          break
 
-    in_date = ''
-    for v in dates:
-        if v in tmp_dates:
-            in_date +=v+'\n'
-        else:
-            #cleansing data of ld-rawdata
-            cleansing_format_data(v)
-            in_date+=v+'\n'
-            obj.put(Body = in_date)
-            break
-
-
-    response = {
-        "statusCode": 200,
-        "body": 'hello!'
-    }
-
-    return response
+        in_date = ''
+        for v in dates:
+            if v in tmp_dates:
+                in_date +=v+'\n'
+            else:
+                cleansing_format_data(v)
+                in_date+=v+'\n'
+                obj.put(Body = in_date)
+                break

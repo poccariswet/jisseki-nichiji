@@ -6,9 +6,10 @@ provider:
   timeout: 300
   stage: dev
   region: ap-northeast-1
+  memorySize: 3000
   environment:
     START_DAY: "20161115"
-    END_DAY:   "20161118"
+    END_DAY:   "20161201"
 
 #plugins:
 #  - serverless-python-requirements
